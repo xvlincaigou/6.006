@@ -1,5 +1,5 @@
 import os
-import Tkinter, tkFileDialog
+import tkinter, tkinter.filedialog
 from resizeable_image import ResizeableImage
 
 seam = None
@@ -8,7 +8,7 @@ temp='_gtemp_.ppm'
 
 def open_file():
     global image, status
-    filename = tkFileDialog.askopenfilename()
+    filename = tkinter.filedialog.askopenfilename()
     if filename is None: return
     status['text'] = 'Loading %s...' % os.path.basename(filename)
     status.update()
@@ -25,7 +25,7 @@ def open_file():
 def save_file():
     global image, status
     if image is None: return
-    filename = tkFileDialog.asksaveasfilename()
+    filename = tkinter.filedialog.asksaveasfilename()
     if filename is None: return
     status['text'] = 'Saving %s...' % os.path.basename(filename)
     status.update()
@@ -39,7 +39,7 @@ def save_file():
 def update_display():
     global image, photo, display, root, buttons
     image.save_ppm(temp)
-    photo = Tkinter.PhotoImage(master=root, file=temp)
+    photo = tkinter.PhotoImage(master=root, file=temp)
     display['image'] = photo
     root.wm_geometry('%dx%d' % (
       buttons.winfo_width() + image.width,
@@ -95,27 +95,27 @@ def remove_seam():
     else:
         status['text'] = 'Removed seam.'
 
-root = Tkinter.Tk()
+root = tkinter.Tk()
 root.title('6.006 Seam Carving')
-status = Tkinter.Label(text='Please open an image.')
+status = tkinter.Label(text='Please open an image.')
 status.pack(side='top')
-buttons = Tkinter.Frame()
-open_button = Tkinter.Button(buttons, text='Open...', command=open_file)
+buttons = tkinter.Frame()
+open_button = tkinter.Button(buttons, text='Open...', command=open_file)
 open_button.pack(side='top', fill='x')
-save_button = Tkinter.Button(buttons, text='Save...', command=save_file)
+save_button = tkinter.Button(buttons, text='Save...', command=save_file)
 save_button.pack(side='top', fill='x')
-show_button = Tkinter.Button(buttons, text='Show Seam', command=show_seam)
+show_button = tkinter.Button(buttons, text='Show Seam', command=show_seam)
 show_button.pack(side='top', fill='x')
-remove_button = Tkinter.Button(buttons, text='Remove Seam', command=remove_seam)
+remove_button = tkinter.Button(buttons, text='Remove Seam', command=remove_seam)
 remove_button.pack(side='top', fill='x')
-multiple_frame = Tkinter.Frame(buttons)
-multiple_label = Tkinter.Label(multiple_frame, text='Repeat:')
+multiple_frame = tkinter.Frame(buttons)
+multiple_label = tkinter.Label(multiple_frame, text='Repeat:')
 multiple_label.pack(side='left')
-multiple_spin = Tkinter.Spinbox(multiple_frame,
+multiple_spin = tkinter.Spinbox(multiple_frame,
     width=3, from_=1, to_=100, increment=1)
 multiple_spin.pack(side='right')
 multiple_frame.pack(side='top', fill='x')
 buttons.pack(side='left')
-display = Tkinter.Label(root)
+display = tkinter.Label(root)
 display.pack(side='top')
 root.mainloop()
