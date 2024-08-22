@@ -20,9 +20,9 @@ class CircuitTest(unittest.TestCase):
         return file.readline() == ''
 
     def testCorrectness(self):
-        print('Testing correctness:')
+        print 'Testing correctness:'
         for in_filename in self._in_files:
-            print('Testing {0} ......'.format(os.path.basename(in_filename)), end=' ')
+            print 'Testing {0} ......'.format(os.path.basename(in_filename)),
             sys.stdout.flush()
             with open(in_filename) as in_file:
                 sim = Simulation.from_file(in_file)
@@ -33,9 +33,9 @@ class CircuitTest(unittest.TestCase):
                 with open(gold_filename) as gold_file:
                     same = self._cmp_files(gold_file, out_lines)
                     if same:
-                        print('OK')
+                        print 'OK'
                     else: 
-                        print('Failed')
+                        print 'Failed'
                     self.assertTrue(same)
     
 if __name__ == '__main__':

@@ -344,26 +344,47 @@ class PriorityQueue:
     """Array-based priority queue implementation."""
     def __init__(self):
         """Initially empty priority queue."""
-        self.queue = []
-        self.min_index = None
+        self.queue = [0]
     
     def __len__(self):
         # Number of elements in the queue.
-        return len(self.queue)
+        return len(self.queue) - 1
     
+    def bubble_up(self, index):
+        if index <= 1:
+            return
+        parent = index // 2
+        if self.queue[parent] <= self.queue[index]:
+            return
+        self.queue[parent], self.queue[index] = self.queue[index], self.queue[parent]
+        self.bubble_up(parent)
+
+    def bubble_down(self, index):
+        left = index * 2
+        right = index * 2 + 1
+        if left >= len(self.queue):
+            return
+        if right >= len(self.queue):
+            smallest = left
+        else:
+            smallest = left if self.queue[left] < self.queue[right] else right
+        if self.queue[index] <= self.queue[smallest]:
+            return
+        self.queue[index], self.queue[smallest] = self.queue[smallest], self.queue[index]
+        self.bubble_down(smallest)
+
     def append(self, key):
         """Inserts an element in the priority queue."""
         if key is None:
             raise ValueError('Cannot insert None in the queue')
         self.queue.append(key)
-        self.min_index = None
+        self.bubble_up(len(self.queue) - 1)
     
     def min(self):
         """The smallest element in the queue."""
-        if len(self.queue) == 0:
+        if len(self.queue) <= 1:
             return None
-        self._find_min()
-        return self.queue[self.min_index]
+        return self.queue[1]
     
     def pop(self):
         """Removes the minimum element in the queue.
@@ -373,24 +394,11 @@ class PriorityQueue:
         """
         if len(self.queue) == 0:
             return None
-        self._find_min()
-        popped_key = self.queue.pop(self.min_index)
-        self.min_index = None
+        popped_key = self.queue[1]
+        self.queue[1] = self.queue[-1]
+        self.queue.pop()
+        self.bubble_down(1)
         return popped_key
-    
-    def _find_min(self):
-        # Computes the index of the minimum element in the queue.
-        #
-        # This method may crash if called when the queue is empty.
-        if self.min_index is not None:
-            return
-        min = self.queue[0]
-        self.min_index = 0
-        for i in xrange(1, len(self.queue)):
-            key = self.queue[i]
-            if key < min:
-                min = key
-                self.min_index = i
 
 class Simulation:
     """State needed to compute a circuit's state as it evolves over time."""
@@ -431,7 +439,7 @@ class Simulation:
             The simulation time after the step occurred.
         """ 
         step_time = self.queue.min().time
-        
+
         # Need to apply all the transitions at the same time before propagating.
         transitions = []
         while len(self.queue) > 0 and self.queue.min().time == step_time:
