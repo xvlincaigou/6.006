@@ -37,10 +37,10 @@ class Circuit2Test(unittest.TestCase):
     return int(file.readline()) == result
 
   def testCorrectness(self):
-    print 'Testing correctness:'
+    print('Testing correctness:')
     for in_filename in self._in_files:
       list_test = in_filename.find("list_") >= 0
-      print 'Testing {0} ......'.format(os.path.basename(in_filename)),
+      print('Testing {0} ......'.format(os.path.basename(in_filename)), end=' ')
       sys.stdout.flush()
       with open(in_filename) as in_file:
         layer = WireLayer.from_file(in_file)
@@ -49,7 +49,7 @@ class Circuit2Test(unittest.TestCase):
           result = verifier.wire_crossings()
         else:
           result = verifier.count_crossings()
-       
+
         gold_filename = re.sub('\.in$', '.gold', in_filename)
         with open(gold_filename) as gold_file:
           if list_test:
@@ -58,9 +58,9 @@ class Circuit2Test(unittest.TestCase):
             same = self._cmp_counts(gold_file, result)
             
           if same:
-            print 'OK'
+            print('OK')
           else: 
-            print 'Failed'
+            print('Failed')
           self.assertTrue(same)
     
 if __name__ == '__main__':

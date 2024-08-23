@@ -5,6 +5,8 @@ import os     # Used to get the TRACE environment variable
 import re     # Used when TRACE=jsonp
 import sys    # Used to smooth over the range / xrange issue.
 
+from avl import AVL
+
 # Python 3 doesn't have xrange, and range behaves like xrange.
 if sys.version_info >= (3,):
     xrange = range
@@ -138,34 +140,82 @@ class WireLayer(object):
     return layer
 
 class RangeIndex(object):
-  """Array-based range index implementation."""
-  
+  """AVL tree-based range index implementation."""
+
   def __init__(self):
     """Initially empty range index."""
-    self.data = []
-  
+    self.data = AVL()
+
   def add(self, key):
     """Inserts a key in the range index."""
     if key is None:
         raise ValueError('Cannot insert nil in the index')
-    self.data.append(key)
-  
+    self.data.insert(key)
+
   def remove(self, key):
     """Removes a key from the range index."""
-    self.data.remove(key)
-  
+    self.data.delete(key)
+
+  def lca(self, first_key, last_key):
+    """Returns the least common ancestor of first_key and last_key."""
+    node = self.data.root
+    while node is not None and not (first_key <= node.key <= last_key):
+      if first_key < node.key:
+        node = node.left
+      else:
+        node = node.right
+    return node
+
+  def list_helper(self, first_key, last_key, current, nodes):
+    if current is None:
+      return
+    if first_key <= current.key:
+      self.list_helper(first_key, last_key, current.left, nodes)
+    if first_key <= current.key <= last_key:
+      nodes.append(current.key)
+    if current.key <= last_key:
+      self.list_helper(first_key, last_key, current.right, nodes)
+
   def list(self, first_key, last_key):
     """List of values for the keys that fall within [first_key, last_key]."""
-    return [key for key in self.data if first_key <= key <= last_key]
+    lca = self.lca(first_key, last_key)
+    nodes = []
+    self.list_helper(first_key, last_key, lca, nodes)
+    return nodes
   
   def count(self, first_key, last_key):
     """Number of keys that fall within [first_key, last_key]."""
-    result = 0
-    for key in self.data:
-      if first_key <= key <= last_key:
-        result += 1
-    return result
+    return self.list(first_key, last_key).__len__()
   
+# class RangeIndex(object):
+#   """Array-based range index implementation."""
+  
+#   def __init__(self):
+#     """Initially empty range index."""
+#     self.data = []
+  
+#   def add(self, key):
+#     """Inserts a key in the range index."""
+#     if key is None:
+#         raise ValueError('Cannot insert nil in the index')
+#     self.data.append(key)
+  
+#   def remove(self, key):
+#     """Removes a key from the range index."""
+#     self.data.remove(key)
+  
+#   def list(self, first_key, last_key):
+#     """List of values for the keys that fall within [first_key, last_key]."""
+#     return [key for key in self.data if first_key <= key <= last_key]
+  
+#   def count(self, first_key, last_key):
+#     """Number of keys that fall within [first_key, last_key]."""
+#     result = 0
+#     for key in self.data:
+#       if first_key <= key <= last_key:
+#         result += 1
+#     return result
+
 class TracedRangeIndex(RangeIndex):
   """Augments RangeIndex to build a trace for the visualizer."""
   
@@ -304,9 +354,11 @@ class CrossVerifier(object):
 
     self.events = []
     self._events_from_layer(layer)
-    self.events.sort()
+    self.events.sort(key=lambda event: (event[0], event[1]))
   
+    # 用来进行范围查询的类，这里面存储的其实是所有横线的y坐标。
     self.index = RangeIndex()
+    # 用来存储所有的交叉点
     self.result_set = ResultSet()
     self.performed = False
   
@@ -326,10 +378,10 @@ class CrossVerifier(object):
 
   def _events_from_layer(self, layer):
     """Populates the sweep line events from the wire layer."""
-    left_edge = min([wire.x1 for wire in layer.wires.values()])
     for wire in layer.wires.values():
       if wire.is_horizontal():
-        self.events.append([left_edge, 0, wire.object_id, 'add', wire])
+        self.events.append([wire.x1, 0, wire.object_id, 'add', wire])
+        self.events.append([wire.x2, 2, wire.object_id, 'rid', wire])
       else:
         self.events.append([wire.x1, 1, wire.object_id, 'query', wire])
 
@@ -343,11 +395,16 @@ class CrossVerifier(object):
     for event in self.events:
       event_x, event_type, wire = event[0], event[3], event[4]
       
+      # 如果说着条线是横线，那么我们直接把它加入到索引中，索引的key是它的高度。
       if event_type == 'add':
         self.index.add(KeyWirePair(wire.y1, wire))
+      elif event_type == 'rid':
+        self.index.remove(KeyWirePair(wire.y1, wire))
+      # 如果这条线是竖线，那么它就会成为我们从左往右扫的那条线，我们就要看它和之前的横线有没有交点。
       elif event_type == 'query':
         self.trace_sweep_line(event_x)
         cross_wires = []
+        # 我们寻找所有会与它相交的横线
         for kwp in self.index.list(KeyWirePairL(wire.y1),
                                    KeyWirePairH(wire.y2)):
           if wire.intersects(kwp.wire):
