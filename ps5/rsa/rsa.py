@@ -17,11 +17,15 @@ class RsaKey(object):
   def __init__(self, exponent_hex_string, modulus_hex_string):
     '''Initializes a key from a public or private exponent and the modulus.'''
     self.e = BigNum.from_hex(exponent_hex_string)
+    # print('Exponent:', self.e)
     self.n = BigNum.from_hex(modulus_hex_string)
+    # print('Modulus:', self.n)
     self.size = (len(self.n.hex()) + 1) // 2
+    # print('Key size:', self.size)
     self.chunk_cache = {}
     
   def raw_crypt(self, number):
+    # print('Raw crypt', number)
     '''Performs ECB RSA encryption / decryption.'''
     return number.powmod(self.e, self.n)
     
@@ -39,6 +43,7 @@ class RsaKey(object):
       if in_chunk in self.chunk_cache:
         out_chunk = self.chunk_cache[in_chunk]
       else:
+        # print('cache miss', in_chunk)
         out_chunk = self.raw_crypt(BigNum.from_hex(in_chunk)).hex()
         if len(out_chunk) > out_chunk_size:
           # This indicates a decryption error. However, we'll truncate the
@@ -132,10 +137,10 @@ class EncryptedImage(object):
 # Command-line controller.
 if __name__ == '__main__':
   image = EncryptedImage.from_file(sys.stdin)
-  
   if os.environ.get('TRACE') == 'jsonp':
     sys.stdout.write('onJsonp(')
     json.dump(image.as_json(), sys.stdout)
     sys.stdout.write(');\n')
   else:
     image.to_file(sys.stdout)
+  

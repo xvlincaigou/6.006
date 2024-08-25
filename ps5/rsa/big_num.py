@@ -69,6 +69,7 @@ class BigNum(object):
       else:
         byte_string = hex_string[(i - 2):i]
       digits.append(Byte.from_hex(byte_string))
+    # digits是小端存储的。是一又一个的两位16进制数。
     return BigNum(digits)
   
   @staticmethod
@@ -256,7 +257,17 @@ class BigNum(object):
     '''
     Slow method for multiplying two numbers w/ good constant factors.
     '''
-    return self.fast_mul(other)
+    if len(self.d) < len(other.d):
+      return other.slow_mul(self)
+    result = BigNum.zero(len(self.d) + len(other.d))
+    for i in xrange(0, len(other.d)):
+      carry = Byte.zero()
+      for j in xrange(0, len(self.d)):
+        product = self.d[j] * other.d[i] + Word.from_byte(result.d[i + j]) + Word.from_byte(carry)
+        result.d[i + j] = product.lsb()
+        carry = product.msb()
+      result.d[i + len(self.d)] = carry
+    return result.normalize()
 
   def fast_mul(self, other):
     '''
@@ -311,11 +322,28 @@ class BigNum(object):
       return self.slow_divmod(other)
     return self.fast_divmod(other)
   
+  """
+  这段代码让我震撼，我想了有一段时间才搞明白它在干什么。
+  我们可以假设divisors最后一个元素是2^n * other。
+  这样，我们可以用other, 2* other, 4*other, 8*other, ... 2^(n-1) * other的组合来表示self。
+  """
   def slow_divmod(self, other):
     '''
     Slow method for dividing two numbers w/ good constant factors.
     '''
-    return self.fast_divmod(other)
+    remainder = BigNum(self.d)
+    divisors = [BigNum(other.d)]
+    two = BigNum.one() + BigNum.one()
+    while divisors[-1] < remainder:
+      divisors.append((divisors[-1] + divisors[-1]).normalize())
+    
+    quotient = BigNum.zero()
+    for i in xrange(len(divisors) - 1, -1, -1):
+      quotient = (quotient + quotient).normalize()
+      if remainder >= divisors[i]:
+        remainder = (remainder - divisors[i]).normalize()
+        quotient.d[0] |= Byte.one()
+    return (quotient.normalize(), remainder)    
 
   def fast_divmod(self, other):
     '''
