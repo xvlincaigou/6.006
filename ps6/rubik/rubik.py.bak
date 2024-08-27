@@ -107,7 +107,7 @@ def perm_inverse(p):
     """
     n = len(p)
     q = [0]*n
-    for i in range(n):
+    for i in xrange(n):
         q[p[i]] = i
     return tuple(q)
 
@@ -170,7 +170,7 @@ def input_configuration():
     """
     position = [-1]*24
 
-    cubie = input("""
+    cubie = raw_input("""
     Look for the cubie with yellow, blue, and orange faces (it has the
     Rubiks mark). Put this cubie in the lower-back-right corner with
     the yellow face down. We will call this cubie #7.
@@ -183,45 +183,45 @@ def input_configuration():
     position[0] = eval(cubie)
     position[1] = eval(cubie[1:] + cubie[0])
     position[2] = eval(cubie[2] + cubie[:2])
-    cubie = input("""
+    cubie = raw_input("""
     Now enter cubie #1, which is to the right of cubie #0, again
     starting with the front face and going clockwise:
     cubie #1: """)
     position[3] = eval(cubie)
     position[4] = eval(cubie[1:] + cubie[0])
     position[5] = eval(cubie[2] + cubie[:2])
-    cubie = input("""
+    cubie = raw_input("""
     Now enter cubie #2, which is beneath cubie #0:
     cubie #2: """)
     position[6] = eval(cubie)
     position[7] = eval(cubie[1:] + cubie[0])
     position[8] = eval(cubie[2] + cubie[:2])
-    cubie = input("""
+    cubie = raw_input("""
     Now enter cubie #3, to the right of cubie #2:
     cubie #3: """)
     position[9] = eval(cubie)
     position[10] = eval(cubie[1:] + cubie[0])
     position[11] = eval(cubie[2] + cubie[:2])
-    cubie = input("""
+    cubie = raw_input("""
     Now enter cubie #4, which is behind cubie #0. Start with the back
     face, and go clockwise:
     cubie #4: """)
     position[12] = eval(cubie)
     position[13] = eval(cubie[1:] + cubie[0])
     position[14] = eval(cubie[2] + cubie[:2])
-    cubie = input("""
+    cubie = raw_input("""
     Now enter cubie #5, which is to the right of cubie #4:
     cubie #5: """)
     position[15] = eval(cubie)
     position[16] = eval(cubie[1:] + cubie[0])
     position[17] = eval(cubie[2] + cubie[:2])
-    cubie = input("""
+    cubie = raw_input("""
     Now enter cubie #6, which is beneath cubie #4:
     cubie #6: """)
     position[18] = eval(cubie)
     position[19] = eval(cubie[1:] + cubie[0])
     position[20] = eval(cubie[2] + cubie[:2])
-    print("""We already know cubie #7, so we're done.""")
+    print """We already know cubie #7, so we're done."""
     cubie = 'oyb'
     position[21] = eval(cubie)
     position[22] = eval(cubie[1:] + cubie[0])

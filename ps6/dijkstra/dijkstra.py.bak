@@ -163,12 +163,12 @@ class PathFinder(object):
         Returns:
             PathResult for the shortest path or None if path is empty.
         """
-        start_time = time.perf_counter()
+        start_time = time.clock()
         
         path, num_visited = self.dijkstra(weight, self.network.nodes, 
                                           self.source, self.destination)
             
-        time_used = round(time.perf_counter() - start_time, 3)
+        time_used = round(time.clock() - start_time, 3)
         if path:
             if self.network.verify_path(path, self.source, self.destination):
                 return PathResult(path, num_visited, weight, self.network, 
@@ -195,41 +195,7 @@ class PathFinder(object):
             A tuple: (the path as a list of nodes from source to destination, 
                       the number of visited nodes)
         """
-        pq = PriorityQueue()
-        not_discovered = set()
-        parent = {source: None}
-        distance = {source: 0}
-
-        for node in nodes:
-            distance[node] = float('inf') if node != source else 0
-            not_discovered.add(node)
-
-        pq.insert(NodeDistancePair(source, 0))
-        while pq.__len__() > 0:
-            current = pq.extract_min()
-            if current.node == destination:
-                break
-            if current.node not in not_discovered:
-                continue
-            else:
-                not_discovered.remove(current.node)
-
-            for neighbor in current.node.adj:
-                if neighbor in not_discovered:
-                    new_distance = current.distance + weight(current.node, neighbor)
-                    if new_distance < distance[neighbor]:
-                        pq.insert(NodeDistancePair(neighbor, new_distance))
-                        parent[neighbor] = current.node
-                        distance[neighbor] = new_distance
         
-        path = []
-        current = destination
-        while current:
-            path.append(current)
-            current = parent[current]
-        path.reverse()
-        return path, len(path)
-
     @staticmethod
     def from_file(file, network):
         """Creates a PathFinder object with source and destination read from 
@@ -364,5 +330,5 @@ if __name__ == '__main__':
             else:
                 r.to_file(sys.stdout)
         else:
-            print('No path is found.')
+            print 'No path is found.'
     

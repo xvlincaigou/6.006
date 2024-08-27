@@ -1,6 +1,6 @@
 #!/usr/bin/python
 import unittest
-import solver
+import solver as solver
 import rubik
 import sys
 
